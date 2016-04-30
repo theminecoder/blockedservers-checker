@@ -1,0 +1,24 @@
+{
+  "name": "blockedmc-checker",
+  "version": "1.0.0",
+  "description": "Downloads the lastest blocked servers from mojang and inserts them into the website",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BlockedServersMC/Checker.git"
+  },
+  "author": "theminecoder",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BlockedServersMC/Checker/issues"
+  },
+  "homepage": "https://github.com/BlockedServersMC/Checker#readme",
+  "dependencies": {
+    "mongoose": "^4.4.14",
+    "mongoose-findorcreate": "^0.1.2",
+    "request": "^2.72.0"
+  }
+}
