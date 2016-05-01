@@ -28,6 +28,10 @@ var ServerSchema = mongoose.Schema({
 		hostname: String,
 		currentlyBlocked: Boolean,
 		lastBlocked: Date
+	}),
+	IPHash = mongoose.model('IPHash', {
+		_id: String,
+		hostname: String
 	});
 ServerSchema.plugin(findorcreate);
 var Server = mongoose.model('Server', ServerSchema)
@@ -44,17 +48,26 @@ var updateServers = function() {
 		});
 		console.log("Got "+serverHashes.length+" blocked servers!");
 		serverHashes.map(function(serverHash) {
-			Server.findOrCreate({_id: serverHash}, {currentlyBlocked: false}, function(err, server) {
+			IPHash.find({_id: serverHash}, function(err, ipHash) {
 				if(err) {
 					console.error(err);
 					return;
 				}
-				if(!server.currentlyBlocked) {
-					server.currentlyBlocked = true;
-					server.lastBlocked = Date.now();
-					server.save();
-					postTweet(server, true);
-				}
+				Server.findOrCreate({_id: serverHash}, {currentlyBlocked: false}, function(err, server) {
+					if(err) {
+						console.error(err);
+						return;
+					}
+					if(!server.currentlyBlocked) {
+						server.currentlyBlocked = true;
+						server.lastBlocked = Date.now();
+						if(ipHash!=null) {
+							server.hostname = ipHash.hostname
+						}
+						server.save();
+						postTweet(server, true);
+					}
+				});
 			});
 		});
 		Server.find({currentlyBlocked: true}, function(err, servers) {
