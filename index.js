@@ -1,6 +1,14 @@
 var request = require('request'),
 	mongoose = require('mongoose'),
-	findorcreate = require('mongoose-findorcreate');
+	findorcreate = require('mongoose-findorcreate'),
+	twit = require('twit'),
+	twitter = new twit({
+		consumer_key: process.env.TWITTER_CONSUMER_KEY,
+		consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+		access_token: process.env.TWITTER_ACCESS_TOKEN,
+		access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+		timeout_ms: 1000*60
+	});
 	
 mongoose.connect(process.env.MONGO_URL||'mongodb://localhost/test', function(err){
 	if(err) {
@@ -45,6 +53,7 @@ var updateServers = function() {
 					server.currentlyBlocked = true;
 					server.lastBlocked = Date.now();
 					server.save();
+					postTweet(server, true);
 				}
 			});
 		});
@@ -57,8 +66,15 @@ var updateServers = function() {
 				if(serverHashes.indexOf(server._id)<0) {
 					server.currentlyBlocked = false;
 					server.save()
+					postTweet(server, false);
 				}
 			});
 		});
+	});
+}
+
+function postTweet(server, blocked) {
+	twitter.post('statuses/update', { status: server._id+(server.hostname?' ('+server.hostname+')':' (Hostname not yet known)')+' has been '+(blocked?'blocked':'unblocked')+' by Mojang!' }).catch(function(err) {
+		console.error(err);
 	});
 }
