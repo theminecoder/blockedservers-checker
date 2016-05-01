@@ -61,7 +61,7 @@ var updateServers = function() {
 					if(!server.currentlyBlocked) {
 						server.currentlyBlocked = true;
 						server.lastBlocked = Date.now();
-						if(ipHash!=null) {
+						if(ipHash && !server.hostname) {
 							server.hostname = ipHash.hostname
 						}
 						server.save();
