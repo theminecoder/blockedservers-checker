@@ -26,6 +26,7 @@ db.once('open', function() {
 var ServerSchema = mongoose.Schema({
 		_id: String,
 		hostname: String,
+		hostnameFound: Boolean,
 		currentlyBlocked: Boolean,
 		lastBlocked: Date
 	}),
