@@ -60,7 +60,7 @@ var updateServers = function() {
 						return;
 					}
 					if(server.currentlyBlocked && server.hostname == null ) {
-						console.log(serverHash +" = "+JSON.stringify(iphash));
+						console.log(serverHash +" = "+JSON.stringify(ipHash));
 						if(ipHash != null && ipHash.hostname !=null) {
 							server.hostname = ipHash.hostname;
 							server.save(function(err){
