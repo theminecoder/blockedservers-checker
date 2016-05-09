@@ -61,9 +61,12 @@ var updateServers = function() {
 					}
 					if(server.currentlyBlocked && !server.hostname && ipHash && ipHash.hostname) {
 						server.hostname = ipHash.hostname;
-						//server.save();
-						console.log(server._id+' has been identified as '+server.hostname+'!')
-						//postHostnameFoundTweet(server);
+						server.save(function(err){
+							if(err) {
+								console.error(err);
+							}
+							postHostnameFoundTweet(server);
+						});
 					}
 					if(!server.currentlyBlocked) {
 						server.currentlyBlocked = true;
@@ -71,8 +74,12 @@ var updateServers = function() {
 						if(ipHash && !server.hostname) {
 							server.hostname = ipHash.hostname
 						}
-						server.save();
-						postTweet(server, true);
+						server.save(function(err){
+							if(err) {
+								console.error(err);
+							}
+							postTweet(server, true);
+						});
 					}
 				});
 			});
@@ -85,8 +92,12 @@ var updateServers = function() {
 			servers.map(function(server){
 				if(serverHashes.indexOf(server._id)<0) {
 					server.currentlyBlocked = false;
-					server.save()
-					postTweet(server, false);
+					server.save(function(err) {
+						if(err) {
+							console.error(err);
+						}
+						postTweet(server, false);
+					})
 				}
 			});
 		});
@@ -97,21 +108,31 @@ var updateServers = function() {
 			}
 			servers.map(function(server) {
 				server.hosnameFound = false;
-				server.save();
-				postHostnameFoundTweet(server);
+				server.save(function(err){
+					if(err) {
+						console.error(err);
+					}
+					postHostnameFoundTweet(server);
+				});
 			});
 		});
 	});
 }
 
 function postTweet(server, blocked) {
-	twitter.post('statuses/update', { status: server._id+(server.hostname?' ('+server.hostname+')':' (Hostname not yet known)')+' has been '+(blocked?'blocked':'unblocked')+' by Mojang!' }).catch(function(err) {
-		console.error(err);
-	});
+	var status = server._id+(server.hostname?' ('+server.hostname+')':' (Hostname not yet known)')+' has been '+(blocked?'blocked':'unblocked')+' by Mojang!';
+	//postTweet(status);
+	console.log(status);
 }
 
 function postHostnameFoundTweet(server) {
-	twitter.post('statuses/update', { status: server._id+' has been identified as '+server.hostname+'!' }).catch(function(err) {
+	var status = server._id+' has been identified as '+server.hostname+'!';
+	//postTweet(status);
+	console.log(status);
+}
+
+function postTweet(statusText) {
+	twitter.post('statuses/update', { status: statusText }).catch(function(err) {
 		console.error(err);
 	});
 }
