@@ -59,10 +59,11 @@ var updateServers = function() {
 						console.error(err);
 						return;
 					}
-					if(server.currentlyBlocked && !server.hostname && ipHash) {
+					if(server.currentlyBlocked && !server.hostname && ipHash && ipHash.hostname) {
 						server.hostname = ipHash.hostname;
-						server.save();
-						postHostnameFoundTweet(server);
+						//server.save();
+						console.log(server._id+' has been identified as '+server.hostname+'!')
+						//postHostnameFoundTweet(server);
 					}
 					if(!server.currentlyBlocked) {
 						server.currentlyBlocked = true;
