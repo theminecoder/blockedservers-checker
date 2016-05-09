@@ -59,14 +59,17 @@ var updateServers = function() {
 						console.error(err);
 						return;
 					}
-					if(server.currentlyBlocked && server.hostname == null && ipHash != null && ipHash.hostname !=null) {
-						server.hostname = ipHash.hostname;
-						server.save(function(err){
-							if(err) {
-								console.error(err);
-							}
-							postHostnameFoundTweet(server);
-						});
+					if(server.currentlyBlocked && server.hostname == null ) {
+						console.log(serverHash +" = "+JSON.stringify(iphash));
+						if(ipHash != null && ipHash.hostname !=null) {
+							server.hostname = ipHash.hostname;
+							server.save(function(err){
+								if(err) {
+									console.error(err);
+								}
+								postHostnameFoundTweet(server);
+							});
+						}
 					}
 					if(!server.currentlyBlocked) {
 						server.currentlyBlocked = true;
