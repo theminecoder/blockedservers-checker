@@ -107,7 +107,7 @@ var updateServers = function() {
 				return;
 			}
 			servers.map(function(server) {
-				server.hosnameFound = false;
+				server.hostnameFound = false;
 				server.save(function(err){
 					if(err) {
 						console.error(err);
