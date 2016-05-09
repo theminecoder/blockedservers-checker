@@ -61,8 +61,9 @@ var updateServers = function() {
 					}
 					if(server.currentlyBlocked && server.hostname == null ) {
 						console.log(serverHash +" = "+JSON.stringify(ipHash));
-						if(ipHash != null && ipHash.hostname !=null) {
+						if(ipHash && ipHash.hostname) {
 							server.hostname = ipHash.hostname;
+							console.log(server);
 							server.save(function(err){
 								if(err) {
 									console.error(err);
