@@ -49,7 +49,7 @@ var updateServers = function() {
 		});
 		console.log("Got "+serverHashes.length+" blocked servers!");
 		serverHashes.map(function(serverHash) {
-			IPHash.find({_id: serverHash}, function(err, ipHash) {
+			IPHash.findOne({_id: serverHash}, function(err, ipHash) {
 				if(err) {
 					console.error(err);
 					return;
@@ -60,10 +60,8 @@ var updateServers = function() {
 						return;
 					}
 					if(server.currentlyBlocked && server.hostname == null ) {
-						console.log(serverHash +" = "+JSON.stringify(ipHash));
 						if(ipHash && ipHash.hostname) {
 							server.hostname = ipHash.hostname;
-							console.log(server);
 							server.save(function(err){
 								if(err) {
 									console.error(err);
