@@ -59,7 +59,7 @@ var updateServers = function() {
 						console.error(err);
 						return;
 					}
-					if(server.currentlyBlocked && !server.hostname && ipHash && ipHash.hostname) {
+					if(server.currentlyBlocked && server.hostname == null && ipHash != null && ipHash.hostname !=null) {
 						server.hostname = ipHash.hostname;
 						server.save(function(err){
 							if(err) {
