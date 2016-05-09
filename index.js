@@ -101,7 +101,7 @@ var updateServers = function() {
 				}
 			});
 		});
-		Server.find({hosnameFound: true}, function(err, servers) {
+		Server.find({hostnameFound: true}, function(err, servers) {
 			if(err) {
 				console.error(err);
 				return;
@@ -121,14 +121,12 @@ var updateServers = function() {
 
 function postTweet(server, blocked) {
 	var status = server._id+(server.hostname?' ('+server.hostname+')':' (Hostname not yet known)')+' has been '+(blocked?'blocked':'unblocked')+' by Mojang!';
-	//postTweet(status);
-	console.log(status);
+	postTweet(status);
 }
 
 function postHostnameFoundTweet(server) {
 	var status = server._id+' has been identified as '+server.hostname+'!';
-	//postTweet(status);
-	console.log(status);
+	postTweet(status);
 }
 
 function postTweet(statusText) {
