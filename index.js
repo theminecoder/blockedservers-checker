@@ -80,8 +80,8 @@ var updateServers = function() {
 							if(err) {
 								console.error(err);
 							}
-							postTweet(server, true);
 						});
+						postTweet(server, true);
 					}
 				});
 			});
@@ -98,8 +98,8 @@ var updateServers = function() {
 						if(err) {
 							console.error(err);
 						}
-						postTweet(server, false);
 					})
+					postTweet(server, false);
 				}
 			});
 		});
