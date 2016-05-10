@@ -129,8 +129,7 @@ function postHostnameFoundTweet(server) {
 	postTweet(server._id+' has been identified as '+server.hostname+'!');
 }
 
-function postTweet(statusText) {
-	console.log("Tweeting: "+statusText);
+function postTweetPrivate(statusText) {
 	twitter.post('statuses/update', { status: statusText }).catch(function(err) {
 		console.error(err);
 	});
