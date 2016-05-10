@@ -132,6 +132,7 @@ function postHostnameFoundTweet(server) {
 }
 
 function postTweet(statusText) {
+	console.log("Tweeting: "+statusText);
 	twitter.post('statuses/update', { status: statusText }).catch(function(err) {
 		console.error(err);
 	});
