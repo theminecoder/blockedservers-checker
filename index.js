@@ -122,13 +122,11 @@ var updateServers = function() {
 }
 
 function postTweet(server, blocked) {
-	var status = server._id+(server.hostname?' ('+server.hostname+')':' (Hostname not yet known)')+' has been '+(blocked?'blocked':'unblocked')+' by Mojang!';
-	postTweet(status);
+	postTweet(server._id+(server.hostname?' ('+server.hostname+')':' (Hostname not yet known)')+' has been '+(blocked?'blocked':'unblocked')+' by Mojang!');
 }
 
 function postHostnameFoundTweet(server) {
-	var status = server._id+' has been identified as '+server.hostname+'!';
-	postTweet(status);
+	postTweet(server._id+' has been identified as '+server.hostname+'!');
 }
 
 function postTweet(statusText) {
