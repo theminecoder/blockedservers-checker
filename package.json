@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/BlockedServersMC/Checker#readme",
   "dependencies": {
-    "mongoose": "^4.4.14",
+    "mongoose": "^4.8.1",
     "mongoose-findorcreate": "^0.1.2",
     "request": "^2.72.0",
     "twit": "^2.2.3"
