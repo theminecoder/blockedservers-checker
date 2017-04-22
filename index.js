@@ -24,6 +24,8 @@ db.once('open', function () {
     updateServers();
 });
 
+var toSend = [];
+
 var ServerSchema = mongoose.Schema({
         _id: String,
         hostname: String,
@@ -125,30 +127,24 @@ var updateServers = function () {
 function postTweet(server, blocked) {
     postTweetPrivate(server._id + (server.hostname ? ' (' + server.hostname + ')' : ' (Hostname not yet known)') + ' has been ' + (blocked ? 'blocked' : 'unblocked') + ' by Mojang!');
     if (discord_url.length > 0) {
-        request.post(discord_url, {
-            json: {
-                embeds: [{
-                    title: "Server " + (!blocked ? "Unb" : "B") + "locked",
-                    color: (blocked ? 13631488 : 3581519),
-                    fields: [{
-                        name: "Server Hostname",
-                        value: server.hostname ? server.hostname : "Hostname not yet known",
-                        inline: true
-                    }, {
-                        name: "Server Hash",
-                        value: server._id,
-                        inline: true
-                    }],
-                    provider: {
-                        name: "Check server status at ismyserverblocked.com",
-                        url: "https://ismyserverblocked.com"
-                    }
-                }]
-            }
-        }, function (err, res, body) {
-            if (err) {
-                console.error(err);
-            }
+        toSend.push({
+            embeds: [{
+                title: "Server " + (!blocked ? "Unb" : "B") + "locked",
+                color: (blocked ? 13631488 : 3581519),
+                fields: [{
+                    name: "Server Hostname",
+                    value: server.hostname ? server.hostname : "Hostname not yet known",
+                    inline: true
+                }, {
+                    name: "Server Hash",
+                    value: server._id,
+                    inline: true
+                }],
+                provider: {
+                    name: "Check server status at ismyserverblocked.com",
+                    url: "https://ismyserverblocked.com"
+                }
+            }]
         });
     }
 }
@@ -156,29 +152,23 @@ function postTweet(server, blocked) {
 function postHostnameFoundTweet(server) {
     postTweetPrivate(server._id + ' has been identified as ' + server.hostname + '!');
     if(discord_url.length>0) {
-        request.post(discord_url, {
-            json: {
-                embeds: [{
-                    title: "Server Hostname Found",
-                    fields: [{
-                        name: "Server Hostname",
-                        value: server.hostname,
-                        inline: true
-                    }, {
-                        name: "Server Hash",
-                        value: server._id,
-                        inline: true
-                    }],
-                    provider: {
-                        name: "Check server status at ismyserverblocked.com",
-                        url: "https://ismyserverblocked.com"
-                    }
-                }]
-            }
-        }, function (err, res, body) {
-            if (err) {
-                console.error(err);
-            }
+        toSend.push({
+            embeds: [{
+                title: "Server Hostname Found",
+                fields: [{
+                    name: "Server Hostname",
+                    value: server.hostname,
+                    inline: true
+                }, {
+                    name: "Server Hash",
+                    value: server._id,
+                    inline: true
+                }],
+                provider: {
+                    name: "Check server status at ismyserverblocked.com",
+                    url: "https://ismyserverblocked.com"
+                }
+            }]
         });
     }
 }
@@ -188,3 +178,30 @@ function postTweetPrivate(statusText) {
         console.error(err);
     });
 }
+
+var doneAlert = false;
+function uploadDiscord() {
+    if (toSend.length > 0) {
+        doneAlert = false;
+        request.post(hook_url, {
+            json: toSend[0]
+        }, function (err, res, body) {
+            if (res.statusCode != 200) {
+                console.log("Error sending, trying again in 1 seconds...", err || body);
+                setTimeout(uploadDiscord, 1000);
+                return;
+            }
+
+            toSend.shift();
+            setTimeout(uploadDiscord, 1000);
+        })
+    } else {
+        if(!doneAlert) {
+            console.log("Nothing to send..... are we done?");
+            doneAlert = true;
+        }
+        setTimeout(uploadDiscord, 1000);
+    }
+}
+
+setTimeout(uploadDiscord, 1000);
