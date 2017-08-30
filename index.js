@@ -181,26 +181,28 @@ function postTweetPrivate(statusText) {
 
 var doneAlert = false;
 function uploadDiscord() {
-    if (toSend.length > 0) {
-        doneAlert = false;
-        request.post(hook_url, {
-            json: toSend[0]
-        }, function (err, res, body) {
-            if (res.statusCode != 200) {
-                console.log("Error sending, trying again in 1 seconds...", err || body);
-                setTimeout(uploadDiscord, 1000);
-                return;
-            }
+    if(discord_url.length>0) {
+        if (toSend.length > 0) {
+            doneAlert = false;
+            request.post(hook_url, {
+                json: toSend[0]
+            }, function (err, res, body) {
+                if (res.statusCode != 200) {
+                    console.log("Error sending, trying again in 1 seconds...", err || body);
+                    setTimeout(uploadDiscord, 1000);
+                    return;
+                }
 
-            toSend.shift();
+                toSend.shift();
+                setTimeout(uploadDiscord, 1000);
+            })
+        } else {
+            if (!doneAlert) {
+                console.log("Nothing to send..... are we done?");
+                doneAlert = true;
+            }
             setTimeout(uploadDiscord, 1000);
-        })
-    } else {
-        if(!doneAlert) {
-            console.log("Nothing to send..... are we done?");
-            doneAlert = true;
         }
-        setTimeout(uploadDiscord, 1000);
     }
 }
 
