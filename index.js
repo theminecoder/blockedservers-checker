@@ -181,6 +181,9 @@ function postTweetPrivate(statusText) {
 
 var doneAlert = false;
 function uploadDiscord() {
+    if(!hook_url) {
+        return;
+    }
     if(discord_url.length>0) {
         if (toSend.length > 0) {
             doneAlert = false;
