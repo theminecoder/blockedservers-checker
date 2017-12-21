@@ -2,7 +2,7 @@ var request = require('request'),
     mongoose = require('mongoose'),
     findorcreate = require('mongoose-findorcreate'),
     twit = require('twit'),
-    discord_url = process.env.DISCORD_HOOK_URL,
+    discord_url = process.env.DISCORD_HOOK_URL || '',
     twitter = new twit({
         consumer_key: process.env.TWITTER_CONSUMER_KEY,
         consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
