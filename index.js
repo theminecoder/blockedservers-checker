@@ -181,13 +181,10 @@ function postTweetPrivate(statusText) {
 
 var doneAlert = false;
 function uploadDiscord() {
-    if(!hook_url) {
-        return;
-    }
     if(discord_url.length>0) {
         if (toSend.length > 0) {
             doneAlert = false;
-            request.post(hook_url, {
+            request.post(discord_url, {
                 json: toSend[0]
             }, function (err, res, body) {
                 if (res.statusCode != 200) {
