@@ -50,77 +50,90 @@ var updateServers = function () {
         var serverHashes = body.split("\n").filter(function (serverHash) {
             return serverHash !== ""
         });
-        console.log("Got " + serverHashes.length + " blocked servers!");
-        serverHashes.map(function (serverHash) {
-            IPHash.findOne({_id: serverHash}, function (err, ipHash) {
-                if (err) {
-                    console.error(err);
-                    return;
-                }
-                Server.findOrCreate({_id: serverHash}, {currentlyBlocked: false}, function (err, server) {
+
+        Server.count({}, function (err, currentCount) {
+            if(err) {
+                console.error(err);
+                return;
+            }
+
+            if(serverHashes.length < (currentCount / 2)) {
+                console.error("Somehow received less then half the current blocked servers. Assuming a blank response was returned by accident.")
+                return;
+            }
+
+            console.log("Got " + serverHashes.length + " blocked servers!");
+            serverHashes.map(function (serverHash) {
+                IPHash.findOne({_id: serverHash}, function (err, ipHash) {
                     if (err) {
                         console.error(err);
                         return;
                     }
-                    if (server.currentlyBlocked && server.hostname == null) {
-                        if (ipHash && ipHash.hostname) {
-                            server.hostname = ipHash.hostname;
+                    Server.findOrCreate({_id: serverHash}, {currentlyBlocked: false}, function (err, server) {
+                        if (err) {
+                            console.error(err);
+                            return;
+                        }
+                        if (server.currentlyBlocked && server.hostname == null) {
+                            if (ipHash && ipHash.hostname) {
+                                server.hostname = ipHash.hostname;
+                                server.save(function (err) {
+                                    if (err) {
+                                        console.error(err);
+                                    }
+                                    postHostnameFoundTweet(server);
+                                });
+                            }
+                        }
+                        if (!server.currentlyBlocked) {
+                            server.currentlyBlocked = true;
+                            server.lastBlocked = Date.now();
+                            if (ipHash && !server.hostname) {
+                                server.hostname = ipHash.hostname
+                            }
                             server.save(function (err) {
                                 if (err) {
                                     console.error(err);
                                 }
-                                postHostnameFoundTweet(server);
                             });
+                            postTweet(server, true);
                         }
-                    }
-                    if (!server.currentlyBlocked) {
-                        server.currentlyBlocked = true;
-                        server.lastBlocked = Date.now();
-                        if (ipHash && !server.hostname) {
-                            server.hostname = ipHash.hostname
-                        }
+                    });
+                });
+            });
+            Server.find({currentlyBlocked: true}, function (err, servers) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                servers.map(function (server) {
+                    if (serverHashes.indexOf(server._id) < 0) {
+                        server.currentlyBlocked = false;
                         server.save(function (err) {
                             if (err) {
                                 console.error(err);
                             }
-                        });
-                        postTweet(server, true);
+                        })
+                        postTweet(server, false);
                     }
                 });
             });
-        });
-        Server.find({currentlyBlocked: true}, function (err, servers) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            servers.map(function (server) {
-                if (serverHashes.indexOf(server._id) < 0) {
-                    server.currentlyBlocked = false;
+            Server.find({hostnameFound: true}, function (err, servers) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                servers.map(function (server) {
+                    server.hostnameFound = false;
                     server.save(function (err) {
                         if (err) {
                             console.error(err);
                         }
-                    })
-                    postTweet(server, false);
-                }
-            });
-        });
-        Server.find({hostnameFound: true}, function (err, servers) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            servers.map(function (server) {
-                server.hostnameFound = false;
-                server.save(function (err) {
-                    if (err) {
-                        console.error(err);
-                    }
-                    postHostnameFoundTweet(server);
+                        postHostnameFoundTweet(server);
+                    });
                 });
             });
-        });
+        })
     });
 }
 
