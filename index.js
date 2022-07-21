@@ -11,6 +11,8 @@ var request = require('request'),
         timeout_ms: 1000 * 60
     });
 
+const offline = process.env.OFFLINE == "true";
+
 mongoose.connect(process.env.MONGO_URL || 'mongodb://localhost/test', function (err) {
     if (err) {
         console.log(err);
@@ -187,7 +189,8 @@ function postHostnameFoundTweet(server) {
 }
 
 function postTweetPrivate(statusText) {
-    twitter.post('statuses/update', {status: statusText}).catch(function (err) {
+    if(offline) console.log("Tweet: "+statusText)
+    else twitter.post('statuses/update', {status: statusText}).catch(function (err) {
         console.error(err);
     });
 }
