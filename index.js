@@ -203,7 +203,7 @@ function uploadDiscord() {
             request.post(discord_url, {
                 json: toSend[0]
             }, function (err, res, body) {
-                if (res.statusCode != 200) {
+                if (res.statusCode != 204) {
                     console.log("Error sending, trying again in 1 seconds...", err || body);
                     setTimeout(uploadDiscord, 1000);
                     return;
