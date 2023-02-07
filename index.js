@@ -1,4 +1,5 @@
 var request = require('request'),
+    mastodonapi = require('mastodon-api'),
     mongoose = require('mongoose'),
     findorcreate = require('mongoose-findorcreate'),
     twit = require('twit'),
@@ -9,7 +10,12 @@ var request = require('request'),
         access_token: process.env.TWITTER_ACCESS_TOKEN,
         access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
         timeout_ms: 1000 * 60
-    });
+    }),
+    mastodon = process.env.MASTODON_ACCESS_TOKEN ? new mastodonapi({
+        access_token: process.env.MASTODON_ACCESS_TOKEN,
+        timeout_ms: 1000 * 60,
+        api_url: process.env.MASTODON_API_URL
+    }) : null;
 
 const offline = process.env.OFFLINE == "true";
 
@@ -190,9 +196,14 @@ function postHostnameFoundTweet(server) {
 
 function postTweetPrivate(statusText) {
     if(offline) console.log("Tweet: "+statusText)
-    else twitter.post('statuses/update', {status: statusText}).catch(function (err) {
-        console.error(err);
-    });
+    else { 
+        twitter.post('statuses/update', {status: statusText}).catch(function (err) {
+            console.error(err);
+        });
+        if(mastodon) mastodon.post('statuses', {status: statusText}).catch(function (err) {
+            console.error(err);
+        });
+    }
 }
 
 var doneAlert = false;
