@@ -86,7 +86,7 @@ var updateServers = function () {
             return serverHash !== ""
         });
 
-        if(lastList == null || arraysEqual(lastList, serverHashes)) {
+        if(lastList == null || !arraysEqual(lastList, serverHashes)) {
             lastList = serverHashes;
             log("Got updated server list, holding for one check to make sure its not caching issues.")
             return;
@@ -236,7 +236,7 @@ function postTweetPrivate(statusText) {
     }
 }
 
-var doneAlert = false;
+var doneAlert = true;
 function uploadDiscord() {
     if(discord_url.length>0) {
         if (toSend.length > 0) {
