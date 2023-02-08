@@ -49,11 +49,11 @@ ServerSchema.plugin(findorcreate);
 var Server = mongoose.model('Server', ServerSchema)
 
 function log(msg) {
-    console.log(`${new Date()} - $msg`)
+    console.log(`${new Date()} - ${msg}`)
 }
 
 function err(msg) {
-    console.error(`${new Date()} - $msg`)
+    console.error(`${new Date()} - ${msg}`)
 }
 
 var updateServers = function () {
