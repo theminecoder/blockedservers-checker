@@ -56,6 +56,25 @@ function err(msg) {
     console.error(`${new Date()} - ${msg}`)
 }
 
+function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
+
+    var aCopy = a.map((x) => x);
+    var bCopy = a.map((x) => x);
+
+    a.sort();
+    b.sort();
+
+    for (var i = 0; i < a.length; ++i) {
+        if (aCopy[i] !== bCopy[i]) return false;
+    }
+    return true;
+}
+
+var lastList;
+
 var updateServers = function () {
     log("Downloading ban list...")
     request("https://sessionserver.mojang.com/blockedservers", function (err, res, body) {
@@ -66,6 +85,12 @@ var updateServers = function () {
         var serverHashes = body.split("\n").filter(function (serverHash) {
             return serverHash !== ""
         });
+
+        if(lastList == null || arraysEqual(lastList, serverHashes)) {
+            lastList = serverHashes;
+            log("Got updated server list, holding for one check to make sure its not caching issues.")
+            return;
+        }
 
         Server.count({}, function (err, currentCount) {
             if(err) {
@@ -86,34 +111,27 @@ var updateServers = function () {
                         return;
                     }
                     Server.findOrCreate({_id: serverHash}, {currentlyBlocked: false}, function (err, server) {
+                        var updated = false;
                         if (err) {
                             console.error(err);
                             return;
                         }
-                        if (server.currentlyBlocked && server.hostname == null) {
-                            if (ipHash && ipHash.hostname) {
-                                server.hostname = ipHash.hostname;
-                                server.save(function (err) {
-                                    if (err) {
-                                        console.error(err);
-                                    }
-                                    postHostnameFoundTweet(server);
-                                });
-                            }
+                        if (ipHash && !server.hostname && ipHash.hostname) {
+                            server.hostname = ipHash.hostname
+                            postHostnameFoundTweet(server);
+                            updated = true;
                         }
                         if (!server.currentlyBlocked) {
                             server.currentlyBlocked = true;
                             server.lastBlocked = Date.now();
-                            if (ipHash && !server.hostname) {
-                                server.hostname = ipHash.hostname
-                            }
-                            server.save(function (err) {
-                                if (err) {
-                                    console.error(err);
-                                }
-                            });
                             postTweet(server, true);
+                            updated = true;
                         }
+                        if(updated) server.save(function (err) {
+                            if (err) {
+                                console.error(err);
+                            }
+                        });
                     });
                 });
             });
