@@ -48,8 +48,16 @@ var ServerSchema = mongoose.Schema({
 ServerSchema.plugin(findorcreate);
 var Server = mongoose.model('Server', ServerSchema)
 
+function log(msg) {
+    console.log(`${new Date()} - $msg`)
+}
+
+function err(msg) {
+    console.error(`${new Date()} - $msg`)
+}
+
 var updateServers = function () {
-    console.log("Downloading ban list...")
+    log("Downloading ban list...")
     request("https://sessionserver.mojang.com/blockedservers", function (err, res, body) {
         if (err || res.statusCode != 200) {
             console.error(err);
@@ -66,11 +74,11 @@ var updateServers = function () {
             }
 
             if(serverHashes.length < (currentCount / 2)) {
-                console.error("Somehow received less then half the current blocked servers. Assuming a blank response was returned by accident.")
+                err("Somehow received less then half the current blocked servers. Assuming a blank response was returned by accident.")
                 return;
             }
 
-            console.log("Got " + serverHashes.length + " blocked servers!");
+            log("Got " + serverHashes.length + " blocked servers!");
             serverHashes.map(function (serverHash) {
                 IPHash.findOne({_id: serverHash}, function (err, ipHash) {
                     if (err) {
@@ -146,7 +154,9 @@ var updateServers = function () {
 }
 
 function postTweet(server, blocked) {
-    postTweetPrivate(server._id + (server.hostname ? ' (' + server.hostname + ')' : ' (Hostname not yet known)') + ' has been ' + (blocked ? 'blocked' : 'unblocked') + ' by Mojang!');
+    var msg = server._id + (server.hostname ? ' (' + server.hostname + ')' : ' (Hostname not yet known)') + ' has been ' + (blocked ? 'blocked' : 'unblocked') + ' by Mojang!'
+    log("Sending: " + msg);
+    postTweetPrivate(msg);
     if (discord_url.length > 0) {
         toSend.push({
             embeds: [{
@@ -171,7 +181,9 @@ function postTweet(server, blocked) {
 }
 
 function postHostnameFoundTweet(server) {
-    postTweetPrivate(server._id + ' has been identified as ' + server.hostname + '!');
+    var msg = server._id + ' has been identified as ' + server.hostname + '!';
+    log("Sending: " + msg)
+    postTweetPrivate(msg);
     if(discord_url.length>0) {
         toSend.push({
             embeds: [{
@@ -215,7 +227,7 @@ function uploadDiscord() {
                 json: toSend[0]
             }, function (err, res, body) {
                 if (res.statusCode != 204) {
-                    console.log("Error sending, trying again in 1 seconds...", err || body);
+                    err("Error sending, trying again in 1 seconds...", err || body);
                     setTimeout(uploadDiscord, 1000);
                     return;
                 }
@@ -225,7 +237,7 @@ function uploadDiscord() {
             })
         } else {
             if (!doneAlert) {
-                console.log("Nothing to send..... are we done?");
+                log("Finished processing discord messages");
                 doneAlert = true;
             }
             setTimeout(uploadDiscord, 1000);
