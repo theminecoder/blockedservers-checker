@@ -82,13 +82,21 @@ var updateServers = function () {
             console.error(err);
             return;
         }
+
         var serverHashes = body.split("\n").filter(function (serverHash) {
             return serverHash !== ""
         });
+        log(`Got ${serverHashes.length} blocked servers!`);
+
+        if(lastList != null) {
+            var added = serverHashes.filter((it) => lastList.indexOf(it) == -1);
+            var removed = lastList.filter((it) => serverHashes.indexOf(it) == -1);
+            log(`Diff: Removed: ${removed} - Added: ${added}`)
+        } else log("First server list, not diffing...")
 
         if(lastList == null || !arraysEqual(lastList, serverHashes)) {
             lastList = serverHashes;
-            log("Got updated server list, holding for one check to make sure its not caching issues.")
+            log("Got updated blocked server list, holding for one check to make sure its not caching issues.")
             return;
         }
 
@@ -103,7 +111,6 @@ var updateServers = function () {
                 return;
             }
 
-            log("Got " + serverHashes.length + " blocked servers!");
             serverHashes.map(function (serverHash) {
                 IPHash.findOne({_id: serverHash}, function (err, ipHash) {
                     if (err) {
