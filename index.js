@@ -182,7 +182,7 @@ function postTweet(server, blocked) {
     var msg = server._id + (server.hostname ? ' (' + server.hostname + ')' : ' (Hostname not yet known)') + ' has been ' + (blocked ? 'blocked' : 'unblocked') + ' by Mojang!'
     log("Sending: " + msg);
     postTweetPrivate(msg);
-    if (discord_url.length > 0) {
+    if (!offline && discord_url.length > 0) {
         toSend.push({
             embeds: [{
                 title: "Server " + (!blocked ? "Unb" : "B") + "locked",
@@ -209,7 +209,7 @@ function postHostnameFoundTweet(server) {
     var msg = server._id + ' has been identified as ' + server.hostname + '!';
     log("Sending: " + msg)
     postTweetPrivate(msg);
-    if(discord_url.length>0) {
+    if(!offline && discord_url.length>0) {
         toSend.push({
             embeds: [{
                 title: "Server Hostname Found",
