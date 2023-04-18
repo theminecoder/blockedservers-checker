@@ -38,6 +38,9 @@ application {
 }
 
 jib {
+    from {
+        image = "openjdk:17"
+    }
     to {
         image = "ghcr.io/theminecoder/blockedservers-checker:latest"
     }
