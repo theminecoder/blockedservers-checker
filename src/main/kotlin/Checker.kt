@@ -61,7 +61,11 @@ fun main() = runBlocking {
         }
 
     announcers = if (env["OFFLINE"]?.toBoolean() == false) {
-        listOf(TwitterAnnouncer, MastodonAnnouncer, DiscordAnnouncer).map {
+        listOf(
+            TwitterAnnouncer,
+            MastodonAnnouncer,
+            DiscordAnnouncer
+        ).map {
             it.configure()
             it
         }

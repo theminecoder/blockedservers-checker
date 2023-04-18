@@ -14,6 +14,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -172,7 +173,6 @@ object TwitterAnnouncer : MicroblogAnnouncer() {
                 log("Logged in :)")
             }
         } else log("Using saved twitter creds :)")
-        postToNetwork("test 2")
     }
 
     private fun saveCreds() {
@@ -216,7 +216,7 @@ object TwitterAnnouncer : MicroblogAnnouncer() {
 
     override suspend fun postToNetwork(update: String) {
         if (currentCreds.accessToken == null ||
-            currentCreds.expires.toInstant().isAfter(Instant.now().plus(1.hours.toJavaDuration()))
+            Instant.now().plus(1.hours.toJavaDuration()).isAfter(currentCreds.expires.toInstant())
         ) if (!refreshToken(currentCreds.refreshToken)) throw IllegalStateException()
 
         httpClient.post("https://api.twitter.com/2/tweets") {

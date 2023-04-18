@@ -1,3 +1,2 @@
-
-rootProject.name = "blockedservers-checker-new"
+rootProject.name = "blockedservers-checker"
 

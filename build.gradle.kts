@@ -1,9 +1,14 @@
+import org.gradle.kotlin.dsl.assign
+
 plugins {
+    application
     kotlin("jvm") version "1.8.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.bmuschko.docker-java-application") version "9.3.1"
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+group = "me.theminecoder"
+version = "1.0"
 
 repositories {
     mavenCentral()
@@ -11,7 +16,6 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
     implementation("io.ktor:ktor-client-core:2.1.0")
@@ -24,10 +28,19 @@ dependencies {
     implementation("club.minnced:discord-webhooks:0.8.2")
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
-
 kotlin {
     jvmToolchain(11)
+}
+
+application {
+    applicationName = "Checker"
+    mainClass = "me.theminecoder.blockedservers.CheckerKt"
+}
+
+docker {
+    javaApplication {
+        baseImage = "openjdk:17"
+        maintainer = "theminecoder"
+        images.add("ghcr.io/theminecoder/blockedservers-checker:latest")
+    }
 }
