@@ -16,6 +16,7 @@ import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.system.exitProcess
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 data class Server(
@@ -75,7 +76,7 @@ fun main() = runBlocking {
 
     while (isActive) {
         runCheck()
-        delay(30.seconds)
+        delay(5.minutes)
     }
 }
 
