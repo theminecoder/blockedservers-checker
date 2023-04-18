@@ -2,6 +2,10 @@ name: Build Image
 
 on: push
 
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+
 jobs:
   build:
     runs-on: ubuntu-latest
