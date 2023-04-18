@@ -4,17 +4,12 @@ import club.minnced.discord.webhook.WebhookClient
 import club.minnced.discord.webhook.send.WebhookEmbed
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder
 import com.sun.net.httpserver.HttpServer
-import fr.outadoc.mastodonk.api.entity.request.StatusCreate
-import fr.outadoc.mastodonk.auth.AuthToken
-import fr.outadoc.mastodonk.auth.AuthTokenProvider
-import fr.outadoc.mastodonk.client.MastodonClient
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -193,8 +188,7 @@ object TwitterAnnouncer : MicroblogAnnouncer() {
                         append("grant_type", "refresh_token")
                     }) {
                         basicAuth(clientCreds.clientId, clientCreds.clientSecret)
-                    }.also { log((it.request.content as FormDataContent).formData.toString()) }
-                        .body<String>()
+                    }.body<String>()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -243,19 +237,24 @@ object TwitterAnnouncer : MicroblogAnnouncer() {
 }
 
 object MastodonAnnouncer : MicroblogAnnouncer() {
-    private lateinit var client: MastodonClient
+    private lateinit var domain: String
+    private lateinit var token: String
 
     override suspend fun configure() {
-        client = MastodonClient {
-            domain = requireNotNull(env["MASTODON_DOMAIN"]) { "Missing MASTODON_DOMAIN" }
-            authTokenProvider = AuthTokenProvider {
-                AuthToken(accessToken = requireNotNull(env["MASTODON_ACCESS_TOKEN"]) { "Missing MASTODON_ACCESS_TOKEN" })
-            }
-        }
+        domain = requireNotNull(env["MASTODON_DOMAIN"]) { "Missing MASTODON_DOMAIN" }
+        token = requireNotNull(env["MASTODON_ACCESS_TOKEN"]) { "Missing MASTODON_ACCESS_TOKEN" }
+
+        if(!httpClient.get("https://$domain/api/v1/accounts/verify_credentials"){
+                bearerAuth(token)
+        }.status.isSuccess()) throw IllegalStateException("Invalid mastodon key")
     }
 
     override suspend fun postToNetwork(update: String) {
-        client.statuses.postStatus(StatusCreate(status = update))
+        if(!httpClient.submitForm("https://$domain/api/v1/statuses", Parameters.build {
+            append("status", update)
+        }){
+            bearerAuth(token)
+        }.status.isSuccess()) throw IllegalStateException("Invalid mastodon key")
     }
 }
 
