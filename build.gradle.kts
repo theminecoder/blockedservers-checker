@@ -4,7 +4,7 @@ plugins {
     application
     kotlin("jvm") version "1.8.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("com.bmuschko.docker-java-application") version "9.3.1"
+    id("com.google.cloud.tools.jib") version "3.3.1"
 }
 
 group = "me.theminecoder"
@@ -37,10 +37,8 @@ application {
     mainClass = "me.theminecoder.blockedservers.CheckerKt"
 }
 
-docker {
-    javaApplication {
-        baseImage = "openjdk:17"
-        maintainer = "theminecoder"
-        images.add("ghcr.io/theminecoder/blockedservers-checker:latest")
+jib {
+    to {
+        image = "ghcr.io/theminecoder/blockedservers-checker:latest"
     }
 }
