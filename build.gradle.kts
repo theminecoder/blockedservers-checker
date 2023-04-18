@@ -41,4 +41,7 @@ jib {
     to {
         image = "ghcr.io/theminecoder/blockedservers-checker:latest"
     }
+    container {
+        workingDirectory = "/app"
+    }
 }
