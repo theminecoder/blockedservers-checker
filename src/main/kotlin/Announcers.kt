@@ -9,8 +9,8 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl
@@ -23,8 +23,11 @@ import java.net.InetSocketAddress
 import java.net.URI
 import java.net.URLDecoder
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -53,6 +56,9 @@ object TwitterAnnouncer : MicroblogAnnouncer() {
     private val credFile = File("./twitter-creds.json")
     private lateinit var currentCreds: TwitterCreds
     private lateinit var clientCreds: TwitterClient
+
+    private var delayedTweets = mutableListOf<String>()
+    private var delayedUntil: Instant? = null
 
     override suspend fun configure() {
         clientCreds = TwitterClient(
@@ -168,6 +174,21 @@ object TwitterAnnouncer : MicroblogAnnouncer() {
                 log("Logged in :)")
             }
         } else log("Using saved twitter creds :)")
+
+        GlobalScope.launch {
+            delay(2.minutes) //offset from main checker
+            while(isActive) {
+                if(delayedUntil?.isBefore(Instant.now()) == true) {
+                    delayedUntil = null
+                    val oldDelay = delayedTweets
+                    delayedTweets = mutableListOf()
+                    oldDelay.forEach {
+                        doPost(it)
+                    }
+                }
+                delay(5.minutes)
+            }
+        }
     }
 
     private fun saveCreds() {
@@ -209,6 +230,12 @@ object TwitterAnnouncer : MicroblogAnnouncer() {
     }
 
     override suspend fun postToNetwork(update: String) {
+        if(delayedUntil != null) {
+            delayedTweets.add(update)
+        } else doPost(update)
+    }
+
+    private suspend fun doPost(update: String) {
         if (currentCreds.accessToken == null ||
             Instant.now().plus(1.hours.toJavaDuration()).isAfter(currentCreds.expires.toInstant())
         ) if (!refreshToken(currentCreds.refreshToken)) throw IllegalStateException()
@@ -218,6 +245,11 @@ object TwitterAnnouncer : MicroblogAnnouncer() {
             contentType(ContentType.Application.Json)
             setBody("""{"text":"$update"}""")
         }.also {
+            if(it.status.value == 429) {
+                delayedUntil = Instant.now().plus(1, ChronoUnit.DAYS)
+                delayedTweets.add(update)
+                return
+            }
             if(!it.status.isSuccess()) {
                 throw IllegalStateException(it.body<String>())
             }

@@ -72,10 +72,15 @@ fun main() = runBlocking {
         }
     } else emptyList()
 
-    if (announcers.size == 0) err("Running Offline (No Announcers)! Remember to manually post updates later!")
+    if (announcers.isEmpty()) err("Running Offline (No Announcers)! Remember to manually post updates later!")
 
     while (isActive) {
-        runCheck()
+        try {
+            runCheck()
+        } catch(e: Exception) {
+            err("Failed to run check....")
+            e.printStackTrace()
+        }
         delay(5.minutes)
     }
 }
@@ -102,7 +107,7 @@ suspend fun runCheck() {
 
     if (currentlyBlocked.size < (blockedCount / 2)) {
         err("Somehow received less then half the current blocked servers. Assuming a blank response was returned by accident.")
-        return;
+        return
     }
 
     currentlyBlocked.forEach {
